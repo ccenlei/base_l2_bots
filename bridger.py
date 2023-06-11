@@ -28,33 +28,21 @@ def get_contract(contract_addr: str, abi_path: str):
     return contract
 
 
-class BridgerAccount(threading.Thread):
-    def __init__(self, thread_id: int, name: str, key: str, addr: str, l2_value: int,
-                 contract: Union[Type[Contract], Contract]) -> None:
-        threading.Thread.__init__(self)
-        self.thread_id = thread_id
-        self.name = name
-        self.key = key
-        self.addr = addr
-        self.l2_value = l2_value
-        self.contract = contract
-
-    def run(self) -> None:
-        print(f"start to bridge: id={self.thread_id}, name={self.name}")
-        account: LocalAccount = Account.from_key(self.key)
-        value = self.l2_value + 800000000000000
-        tx_dict = self.contract.functions.requestL2Transaction(
-            self.addr, self.l2_value, bytes(0), 742563, 800, [], self.addr
-        ).build_transaction({
-            'value': value,
-            'gas': 150000,
-            'gasPrice': w3.eth.gas_price,
-            'nonce': w3.eth.get_transaction_count(account.address),
-        })
-        signed_tx = account.sign_transaction(transaction_dict=tx_dict)
-        tx_hash = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
-        tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
-        print(f"id={self.thread_id}, name={self.name} ==> tx_hash : {tx_hash.hex()}, status: {tx_receipt['status']}")
+def bridger_account(key: str, addr: str, l2_value: int, contract: Union[Type[Contract], Contract]):
+    account: LocalAccount = Account.from_key(key)
+    value = l2_value + 800000000000000
+    tx_dict = contract.functions.requestL2Transaction(
+        addr, l2_value, bytes(0), 742563, 800, [], addr
+    ).build_transaction({
+        'value': value,
+        'gas': 150000,
+        'gasPrice': w3.eth.gas_price,
+        'nonce': w3.eth.get_transaction_count(account.address),
+    })
+    signed_tx = account.sign_transaction(transaction_dict=tx_dict)
+    tx_hash = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+    tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
+    return tx_hash.hex(), tx_receipt['status']
 
 
 def bridger_base():
@@ -71,6 +59,23 @@ def bridger_base():
         thread = BridgerAccount(index, name, key, addr, l2_value, bridger_contract)
         thread.start()
         thread.join()
+
+
+class BridgerAccount(threading.Thread):
+    def __init__(self, thread_id: int, name: str, key: str, addr: str, l2_value: int,
+                 contract: Union[Type[Contract], Contract]) -> None:
+        threading.Thread.__init__(self)
+        self.thread_id = thread_id
+        self.name = name
+        self.key = key
+        self.addr = addr
+        self.l2_value = l2_value
+        self.contract = contract
+
+    def run(self) -> None:
+        print(f"start to bridge: id={self.thread_id}, name={self.name}")
+        tx_hash, status = bridger_account(self.key, self.addr, self.l2_value, self.contract)
+        print(f"id={self.thread_id}, name={self.name} ==> tx_hash : {tx_hash}, status: {status}")
 
 
 bridger_base()
