@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 import json
 from datetime import datetime
-import threading
 import requests
 from eth_account import Account
 from eth_account.signers.local import LocalAccount
@@ -9,9 +8,12 @@ from web3 import Web3
 from web3.middleware import geth_poa_middleware
 
 
-w3 = Web3(Web3.HTTPProvider(f'===============base l2 api==================='))
+header = {'Authorization': 'Bearer RvFMYEylf5IwLpAvy1T51JaKaO-aIHTyJ6jA4dWe5WUBAs88',
+          'Content-Type': 'application/json'}
+w3 = Web3(Web3.HTTPProvider('https://svc.blockdaemon.com/base/testnet/native/http-rpc',
+                            request_kwargs={'headers': header}))
 w3.middleware_onion.inject(geth_poa_middleware, layer=0)
-dackieswap_contract_addr = '=======real contract addr======='
+dackieswap_contract_addr = '0x29843613c7211D014F5Dd5718cF32BCD314914CB'
 
 
 def get_contract(contract_addr: str, abi_path: str):
@@ -23,7 +25,7 @@ def get_contract(contract_addr: str, abi_path: str):
     return contract
 
 
-def get_contract(contract_addr: str):
+def get_contract_http(contract_addr: str):
     abi_endpoint = f'https://api-goerli.basescan.org/api?module=contract&action=getabi&address={contract_addr}'
     with requests.get(abi_endpoint) as response:
         response_json = response.json()
@@ -36,13 +38,13 @@ def sign_tx(tx_dict: dict, account: LocalAccount):
     signed_tx = account.sign_transaction(transaction_dict=tx_dict)
     tx_hash = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
     tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
-    print(f"addr : {account.address} ==> tx_hash : {tx_hash.hex()}, status: {tx_receipt['status']}")
+    print(f"dackie swap addr : {account.address} ==> tx_hash : {tx_hash.hex()}, status: {tx_receipt['status']}")
 
 
 def token_approve(key: str, token_addr: str):
     account: LocalAccount = Account.from_key(key)
     addr = account.address
-    token_contract = get_contract(token_addr)
+    token_contract = get_contract_http(token_addr)
     token_balance = token_contract.functions.balanceOf(addr).call()
     spender, amount = dackieswap_contract_addr, token_balance
     tx_dict = token_contract.functions.approve(spender, amount).build_transaction(
@@ -78,7 +80,8 @@ def dackieswap_token2eth(key: str, token_addr: str):
     account: LocalAccount = Account.from_key(key)
     addr = account.address
     token_balance = token_approve(key, token_addr)
-    path = [token_addr, '==weth addr==']
+    weth_addr = '0x4200000000000000000000000000000000000006'
+    path = [token_addr, weth_addr]
     deadline = int(datetime.now().timestamp()) + 1200
     tx_dict = dackieswap_contract.functions.swapExactTokensForETH(
         token_balance, 0, path, addr, deadline).build_transaction(
