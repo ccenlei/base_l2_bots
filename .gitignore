@@ -7,6 +7,14 @@ __pycache__/
 
 *idea/
 *pycache__/
+*.vscode/
+
+# BlueJ files
+*.ctxt
+
+*target/
+*logs/
+*files/
 
 # C extensions
 *.so
