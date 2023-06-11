@@ -12,6 +12,27 @@ from dackie_dapp.dackie_swapper import dackieswap_token2eth
 acc_model = 'db'
 
 
+def file_load_accs():
+    file_path = 'accounts.json'
+    with open(file_path, mode='r') as file:
+        accounts = json.load(file)
+        on_accounts = [account for account in accounts if account['is_on'] == 0]
+    return on_accounts
+
+
+def db_load_accs():
+    with pymysql.connect(host='localhost', port=3306, user='ccenlei', password='123', database='web3') as db:
+        cursor = db.cursor()
+        sql = 'select name,address,pri_key from eth_account where is_on = 0'
+        cursor.execute(sql)
+        rows = cursor.fetchall()
+        on_accounts = []
+        for row in rows:
+            acc_dic = {'name': row[0], 'addr': row[1], 'key': row[2]}
+            on_accounts.append(acc_dic)
+    return on_accounts
+
+
 # auto harvest dackie farms.
 def automatic_dackie_harvest_bot(key: str):
     dackie_harvest(key)
@@ -28,20 +49,9 @@ if __name__ == '__main__':
     print('start to interact base l2 dapps.')
     match acc_model:
         case 'db':
-            with pymysql.connect(host='localhost', port=3306, user='ccenlei', password='123', database='web3') as db:
-                cursor = db.cursor()
-                sql = 'select name,address,pri_key from eth_account where is_on = 0'
-                cursor.execute(sql)
-                rows = cursor.fetchall()
-                on_accounts = []
-                for row in rows:
-                    acc_dic = {'name': row[0], 'addr': row[1], 'key': row[2]}
-                    on_accounts.append(acc_dic)
+            on_accounts = db_load_accs()
         case 'file':
-            file_path = 'accounts.json'
-            with open(file_path, mode='r') as file:
-                accounts = json.load(file)
-                on_accounts = [account for account in accounts if account['is_on'] == 0]
+            on_accounts = file_load_accs()
         case _:
             print('select a way of accounts load.')
             exit(-1)
