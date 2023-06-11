@@ -6,6 +6,7 @@ import pymysql
 
 from dackie_dapp.dackie_harvester import dackie_harvest
 from dackie_dapp.dackie_swapper import dackieswap_token2eth
+from oil_dapp.oil_harvester import oil_harvest
 
 
 # db: from database; file: from accounts.json
@@ -34,15 +35,21 @@ def db_load_accs():
 
 
 # auto harvest dackie farms.
-def automatic_dackie_harvest_bot(key: str):
+def auto_dackie_harvest_bot(key: str):
     dackie_harvest(key)
     dackieswap_token2eth(key, '0xcf8E7e6b26F407dEE615fc4Db18Bf829E7Aa8C09')
+
+
+# auto harvest oil farms.
+def auto_oil_harvest_bot(key: str):
+    oil_harvest(key)
 
 
 # bot thread.
 def dapp_bot(thread_id: int, name: str, key: str):
     print(f"start to bot: id={thread_id}, name={name}")
-    automatic_dackie_harvest_bot(key)
+    auto_dackie_harvest_bot(key)
+    auto_oil_harvest_bot(key)
 
 
 if __name__ == '__main__':
