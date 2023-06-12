@@ -1,7 +1,10 @@
 #!/usr/bin/python3
+import datetime
+from apscheduler.schedulers.background import BlockingScheduler
 
 from concurrent.futures import ThreadPoolExecutor
 import json
+from typing import Any
 import pymysql
 
 from dackie_dapp.dackie_harvester import dackie_harvest
@@ -62,7 +65,7 @@ def dapp_bot(thread_id: int, name: str, key: str):
     auto_oil_harvest_bot(key)
 
 
-if __name__ == '__main__':
+def pool_excutes():
     print('start to interact base l2 dapps.')
     match acc_model:
         case 'db':
@@ -78,4 +81,11 @@ if __name__ == '__main__':
             index += 1
             name, key = on_account['name'], on_account['key']
             thread = pool.submit(dapp_bot, index, name, key)
+
+
+if __name__ == '__main__':
+    scheduler = BlockingScheduler()
+    # minutes seconds
+    scheduler.add_job(pool_excutes, 'interval', minutes=36, next_run_time=datetime.datetime.now())
+    scheduler.start()
         
