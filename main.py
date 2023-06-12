@@ -34,9 +34,13 @@ def db_load_accs():
     return on_accounts
 
 
+pids = (13, 14)
+
+
 # auto harvest dackie farms.
 def auto_dackie_harvest_bot(key: str):
-    dackie_harvest(key)
+    for pid in pids:
+        dackie_harvest(key, pid)
     dackieswap_token2eth(key, '0xcf8E7e6b26F407dEE615fc4Db18Bf829E7Aa8C09')
 
 
