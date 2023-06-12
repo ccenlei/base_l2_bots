@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 import datetime
+import re
 import pymysql
 import requests
 
@@ -26,23 +27,38 @@ def filter_news(rating:float, title:str):
     return filter
 
 
+def clean_text(ori:str):
+    tar = re.sub(r"\'", "", ori)
+    return tar
+
+
 def save_news(filter_eles, date_str:str):
     with pymysql.connect(host='localhost', port=3306, user='ccenlei', password='123', database='web3') as db:
         for ele in filter_eles:
-            title = ele['title_rewritten_v2']
+            title = clean_text(ele['title_rewritten_v2'])
+            summary = clean_text(ele['summary'])
             url = ele['url']
             rating = ele['rating_v2']
             source = ele['source']
             category = ele['category']
             cursor = db.cursor()
-            sql = "INSERT INTO ai_news(title, category, source, rating, url, date_str) VALUES ('%s', '%s',  '%s', '%s',  '%s',  '%s')" \
-                    % (title, category, source, rating, url, date_str)
+            sql = "INSERT INTO ai_news(title, summary, category, source, rating, url, date_str) VALUES ('%s', '%s',  '%s', '%s',  '%s',  '%s',  '%s')" \
+                    % (title, summary, category, source, rating, url, date_str)
             try:
                 cursor.execute(sql)
                 db.commit()
-            except:
+            except Exception as ex:
                 # need logger
+                print(ex)
                 db.rollback()
+
+
+def crawl_news_summary(id:str):
+    summary_url = f'https://api.newsminimalist.com/rest/v1/articles?select=summary&id=eq.{id}'
+    with requests.get(url=summary_url, headers=news_headers) as response:
+        data_json = response.json()
+        summary = data_json[0]['summary']
+    return summary
 
 
 def crawl_news():
@@ -50,8 +66,12 @@ def crawl_news():
     news_url = f'https://api.newsminimalist.com/rest/v1/articles?select=title_rewritten_v2%2Curl%2Crating_v2%2Csource%2Ccategory%2Cid%2Ccluster_id&created_at=gte.{date_str}T12%3A00%3A00.000Z&created_at=lt.{today_str}T12%3A00%3A00.000Z&rating_v2=gte.0&rating_v2=lt.10&order=rating_v2.desc'
     with requests.get(url=news_url, headers=news_headers) as response:
         news = response.json()
-        filter_eles = [ele for ele in news if filter_news(ele['rating_v2'], ele['title_rewritten_v2']) is False]
-        save_news(filter_eles, date_str)
+    filter_eles = [ele for ele in news if filter_news(ele['rating_v2'], ele['title_rewritten_v2']) is False]
+    for ele in filter_eles:
+        id = ele['id']
+        summary = crawl_news_summary(id)
+        ele['summary'] = summary
+    save_news(filter_eles, date_str)
 
 
 crawl_news()
