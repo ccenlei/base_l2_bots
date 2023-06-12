@@ -50,7 +50,7 @@ def token_approve(key: str, token_addr: str):
     tx_dict = token_contract.functions.approve(spender, amount).build_transaction(
         {
             'value': 0,
-            'gas': 50000,
+            'gas': 55000,
             'gasPrice': w3.eth.gas_price,
             'nonce': w3.eth.get_transaction_count(addr),
         })

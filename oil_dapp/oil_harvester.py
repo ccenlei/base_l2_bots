@@ -42,3 +42,15 @@ def oil_harvest(key: str, toke_id=0):
             'nonce': w3.eth.get_transaction_count(account.address),
         })
     sign_tx(tx_dict, account)
+
+
+def oil_stake_nft(key: str, toke_id: int, amount=1):
+    account: LocalAccount = Account.from_key(key)
+    tx_dict = oilharv_contract.functions.stake(toke_id, amount).build_transaction(
+        {
+            'value': 0,
+            'gas': 200000,
+            'gasPrice': w3.eth.gas_price,
+            'nonce': w3.eth.get_transaction_count(account.address),
+        })
+    sign_tx(tx_dict, account)

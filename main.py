@@ -40,9 +40,15 @@ def auto_dackie_harvest_bot(key: str):
     dackieswap_token2eth(key, '0xcf8E7e6b26F407dEE615fc4Db18Bf829E7Aa8C09')
 
 
+nft_token_ids = (0,2)
+
+
 # auto harvest oil farms.
 def auto_oil_harvest_bot(key: str):
-    oil_harvest(key)
+    for token_id in nft_token_ids:
+        oil_harvest(key, token_id)
+    dackieswap_token2eth(key, '0x5bC8BDC70D7cD2ff78E0CDA60d326685c047f7B5')
+
 
 
 # bot thread.
