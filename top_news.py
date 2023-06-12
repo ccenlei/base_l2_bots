@@ -26,17 +26,23 @@ def filter_news(rating:float, title:str):
     return filter
 
 
-def save_news(title:str, category:str, source:str, rating:float, url:str, date_str:str):
+def save_news(filter_eles, date_str:str):
     with pymysql.connect(host='localhost', port=3306, user='ccenlei', password='123', database='web3') as db:
-        cursor = db.cursor()
-        sql = "INSERT INTO ai_news(title, category, source, rating, url, date_str) VALUES ('%s', '%s',  '%s', '%s',  '%s',  '%s')" \
-              % (title, category, source, rating, url, date_str)
-        try:
-            cursor.execute(sql)
-            db.commit()
-        except:
-            # need logger
-            db.rollback()
+        for ele in filter_eles:
+            title = ele['title_rewritten_v2']
+            url = ele['url']
+            rating = ele['rating_v2']
+            source = ele['source']
+            category = ele['category']
+            cursor = db.cursor()
+            sql = "INSERT INTO ai_news(title, category, source, rating, url, date_str) VALUES ('%s', '%s',  '%s', '%s',  '%s',  '%s')" \
+                    % (title, category, source, rating, url, date_str)
+            try:
+                cursor.execute(sql)
+                db.commit()
+            except:
+                # need logger
+                db.rollback()
 
 
 def crawl_news():
@@ -44,17 +50,8 @@ def crawl_news():
     news_url = f'https://api.newsminimalist.com/rest/v1/articles?select=title_rewritten_v2%2Curl%2Crating_v2%2Csource%2Ccategory%2Cid%2Ccluster_id&created_at=gte.{date_str}T12%3A00%3A00.000Z&created_at=lt.{today_str}T12%3A00%3A00.000Z&rating_v2=gte.0&rating_v2=lt.10&order=rating_v2.desc'
     with requests.get(url=news_url, headers=news_headers) as response:
         news = response.json()
-        for ele in news:
-            title = ele['title_rewritten_v2']
-            url = ele['url']
-            rating = ele['rating_v2']
-            source = ele['source']
-            category = ele['category']
-            filter = filter_news(rating, title)
-            if filter is False:
-                save_news(title, category, source, rating, url, date_str)
-            else:
-                print(source, title)
+        filter_eles = [ele for ele in news if filter_news(ele['rating_v2'], ele['title_rewritten_v2']) is False]
+        save_news(filter_eles, date_str)
 
 
 crawl_news()
