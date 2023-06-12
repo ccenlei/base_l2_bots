@@ -13,10 +13,12 @@ news_headers = {'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.ey
 
 def url_date_params():
     today = datetime.datetime.now()
-    today_str = today.strftime("%Y-%m-%d")
-    yesterday = (today - datetime.timedelta(days=1))
-    date_str = yesterday.strftime("%Y-%m-%d")
-    return date_str, today_str
+    last = (today - datetime.timedelta(days=1))
+    first = (today - datetime.timedelta(days=2))
+    first_str = first.strftime("%Y-%m-%d")
+    last_str = last.strftime("%Y-%m-%d")
+    print(first_str, last_str)
+    return first_str, last_str
 
 
 def filter_news(rating:float, title:str):
@@ -62,8 +64,8 @@ def crawl_news_summary(id:str):
 
 
 def crawl_news():
-    date_str, today_str = url_date_params()
-    news_url = f'https://api.newsminimalist.com/rest/v1/articles?select=title_rewritten_v2%2Curl%2Crating_v2%2Csource%2Ccategory%2Cid%2Ccluster_id&created_at=gte.{date_str}T12%3A00%3A00.000Z&created_at=lt.{today_str}T12%3A00%3A00.000Z&rating_v2=gte.0&rating_v2=lt.10&order=rating_v2.desc'
+    first_str, last_str = url_date_params()
+    news_url = f'https://api.newsminimalist.com/rest/v1/articles?select=title_rewritten_v2%2Curl%2Crating_v2%2Csource%2Ccategory%2Cid%2Ccluster_id&created_at=gte.{first_str}T12%3A00%3A00.000Z&created_at=lt.{last_str}T12%3A00%3A00.000Z&rating_v2=gte.0&rating_v2=lt.10&order=rating_v2.desc'
     with requests.get(url=news_url, headers=news_headers) as response:
         news = response.json()
     filter_eles = [ele for ele in news if filter_news(ele['rating_v2'], ele['title_rewritten_v2']) is False]
@@ -71,7 +73,7 @@ def crawl_news():
         id = ele['id']
         summary = crawl_news_summary(id)
         ele['summary'] = summary
-    save_news(filter_eles, date_str)
+    save_news(filter_eles, last_str)
 
 
 crawl_news()
