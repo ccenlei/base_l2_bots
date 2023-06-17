@@ -7,7 +7,7 @@ import json
 from typing import Any
 import pymysql
 
-from dackie_dapp.dackie_harvester import dackie_harvest
+from dackie_dapp.dackie_harvester import farms_harvest
 from dackie_dapp.dackie_swapper import dackieswap_token2eth
 from oil_dapp.oil_harvester import oil_harvest
 
@@ -43,7 +43,7 @@ pids = (13, 14)
 # auto harvest dackie farms.
 def auto_dackie_harvest_bot(key: str):
     for pid in pids:
-        dackie_harvest(key, pid)
+        farms_harvest(key, pid)
     dackieswap_token2eth(key, '0xcf8E7e6b26F407dEE615fc4Db18Bf829E7Aa8C09')
 
 

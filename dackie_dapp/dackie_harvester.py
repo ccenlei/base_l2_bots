@@ -1,10 +1,10 @@
 #!/usr/bin/python3
-import json
-import requests
 from eth_account import Account
 from eth_account.signers.local import LocalAccount
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
+
+from base_utils import get_contract_http, sign_tx, token_approve
 
 
 header = {'Authorization': 'Bearer RvFMYEylf5IwLpAvy1T51JaKaO-aIHTyJ6jA4dWe5WUBAs88',
@@ -12,44 +12,75 @@ header = {'Authorization': 'Bearer RvFMYEylf5IwLpAvy1T51JaKaO-aIHTyJ6jA4dWe5WUBA
 w3 = Web3(Web3.HTTPProvider('https://svc.blockdaemon.com/base/testnet/native/http-rpc',
                             request_kwargs={'headers': header}))
 w3.middleware_onion.inject(geth_poa_middleware, layer=0)
-dackieharvest_contract_addr = '0xDB8726189978d09D8c8A449Eda6c72A1e2EB228e'
 
 
-def get_contract(contract_addr: str, abi_path: str):
-    addr = Web3.to_checksum_address(contract_addr)
-    with open(abi_path, mode='r') as file:
-        data = json.load(file)
-        contract_abi = data['result']
-    contract = w3.eth.contract(address=addr, abi=contract_abi)
-    return contract
+# Dackie Farms earn : Stake LP tokens to earn.
+farms_addr = '0xDB8726189978d09D8c8A449Eda6c72A1e2EB228e'
+farms_contract = get_contract_http(farms_addr)
 
-
-def get_contract_http(contract_addr: str):
-    abi_endpoint = f'https://api-goerli.basescan.org/api?module=contract&action=getabi&address={contract_addr}'
-    with requests.get(abi_endpoint) as response:
-        response_json = response.json()
-        contract_abi = json.loads(response_json['result'])
-    contract = w3.eth.contract(address=contract_addr, abi=contract_abi)
-    return contract
-
-
-def sign_tx(tx_dict: dict, account: LocalAccount):
-    signed_tx = account.sign_transaction(transaction_dict=tx_dict)
-    tx_hash = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
-    tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
-    print(f"dackie harvest addr : {account.address} ==> tx_hash : {tx_hash.hex()}, status: {tx_receipt['status']}")
-
-
-dackieharv_contract = get_contract_http('0xDB8726189978d09D8c8A449Eda6c72A1e2EB228e')
-
-
-def dackie_harvest(key: str, pid=14, amount=0):
+def farms_stake(key: str, lp_adrr: str, pid: int):
+    amount = token_approve(key, lp_adrr, farms_addr)
     account: LocalAccount = Account.from_key(key)
-    tx_dict = dackieharv_contract.functions.deposit(pid, amount).build_transaction(
+    tx_dict = farms_contract.functions.deposit(pid, amount).build_transaction(
         {
             'value': 0,
             'gas': 250000,
             'gasPrice': w3.eth.gas_price,
             'nonce': w3.eth.get_transaction_count(account.address),
         })
-    sign_tx(tx_dict, account)
+    sign_tx(tx_dict, account, 'dackie farms stake')
+
+def farms_harvest(key: str, pid=14):
+    account: LocalAccount = Account.from_key(key)
+    tx_dict = farms_contract.functions.deposit(pid, 0).build_transaction(
+        {
+            'value': 0,
+            'gas': 250000,
+            'gasPrice': w3.eth.gas_price,
+            'nonce': w3.eth.get_transaction_count(account.address),
+        })
+    sign_tx(tx_dict, account, 'dackie farms harvest')
+
+
+# Dackie Pools earn : Just stake some tokens to earn.
+dackie_token = '0xcf8E7e6b26F407dEE615fc4Db18Bf829E7Aa8C09'
+pools_weth = '0x70249aF497f2040c0677f5Ea1B0dB2595f94803F'
+pools_wbtc = '0xd2BC5Bd918779264aD08cfaC8A276dC6e96AF517'
+
+def pools_stake(key: str, type='weth'):
+    match type:
+        case 'weth':
+            spender = pools_weth
+        case 'wbtc':
+            spender = pools_wbtc
+        case _:
+            spender = pools_weth
+    amount = token_approve(key, dackie_token, spender)
+    pools_contract = get_contract_http(spender)
+    account: LocalAccount = Account.from_key(key)
+    tx_dict = pools_contract.functions.deposit(amount).build_transaction(
+        {
+            'value': 0,
+            'gas': 250000,
+            'gasPrice': w3.eth.gas_price,
+            'nonce': w3.eth.get_transaction_count(account.address),
+        })
+    sign_tx(tx_dict, account, 'dackie pools stake')
+
+def pools_harvest(key: str, type='weth'):
+    match type:
+        case 'weth':
+            pools_contract = get_contract_http(pools_weth)
+        case 'wbtc':
+            pools_contract = get_contract_http(pools_wbtc)
+        case _:
+            pools_contract = get_contract_http(pools_weth)
+    account: LocalAccount = Account.from_key(key)
+    tx_dict = pools_contract.functions.deposit(0).build_transaction(
+        {
+            'value': 0,
+            'gas': 250000,
+            'gasPrice': w3.eth.gas_price,
+            'nonce': w3.eth.get_transaction_count(account.address),
+        })
+    sign_tx(tx_dict, account, 'dackie pools harvest')
