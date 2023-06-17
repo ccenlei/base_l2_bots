@@ -15,8 +15,8 @@ w3 = Web3(Web3.HTTPProvider('https://svc.blockdaemon.com/base/testnet/native/htt
 w3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
 
-dackieswap_contract_addr = '0x29843613c7211D014F5Dd5718cF32BCD314914CB'
-dackieswap_contract = get_contract(dackieswap_contract_addr, 'dackie_dapp/swap_abi.json')
+dackieswap_addr = '0x29843613c7211D014F5Dd5718cF32BCD314914CB'
+dackieswap_contract = get_contract(dackieswap_addr, 'dackie_dapp/swap_abi.json')
 
 def dackieswap_eth2token(key: str, token_addr: str, amount=0.0121):
     account: LocalAccount = Account.from_key(key)
@@ -35,7 +35,7 @@ def dackieswap_eth2token(key: str, token_addr: str, amount=0.0121):
 def dackieswap_token2eth(key: str, token_addr: str):
     account: LocalAccount = Account.from_key(key)
     addr = account.address
-    token_balance = token_approve(key, token_addr)
+    token_balance = token_approve(key, token_addr, dackieswap_addr)
     weth_addr = '0x4200000000000000000000000000000000000006'
     path = [token_addr, weth_addr]
     deadline = int(datetime.now().timestamp()) + 1200
@@ -52,7 +52,7 @@ def dackieswap_token2eth(key: str, token_addr: str):
 def dackieswap_token2token(key: str, token_ori_addr: str, token_tar_addr: str):
     account: LocalAccount = Account.from_key(key)
     addr = account.address
-    token_balance = token_approve(key, token_ori_addr)
+    token_balance = token_approve(key, token_ori_addr, dackieswap_addr)
     path = [token_ori_addr, '==weth addr==', token_tar_addr]
     deadline = int(datetime.now().timestamp()) + 1200
     tx_dict = dackieswap_contract.functions.swapExactTokensForTokens(
