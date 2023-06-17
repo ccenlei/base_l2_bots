@@ -13,9 +13,9 @@ header = {'Authorization': 'Bearer RvFMYEylf5IwLpAvy1T51JaKaO-aIHTyJ6jA4dWe5WUBA
 w3 = Web3(Web3.HTTPProvider('https://svc.blockdaemon.com/base/testnet/native/http-rpc',
                             request_kwargs={'headers': header}))
 w3.middleware_onion.inject(geth_poa_middleware, layer=0)
+
+
 dackieswap_contract_addr = '0x29843613c7211D014F5Dd5718cF32BCD314914CB'
-
-
 dackieswap_contract = get_contract(dackieswap_contract_addr, 'dackie_dapp/swap_abi.json')
 
 def dackieswap_eth2token(key: str, token_addr: str, amount=0.0121):
