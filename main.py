@@ -4,11 +4,10 @@ from apscheduler.schedulers.background import BlockingScheduler
 
 from concurrent.futures import ThreadPoolExecutor
 import json
-from typing import Any
 import pymysql
 
-from dackie_dapp.dackie_harvester import farms_harvest, pools_harvest
-from dackie_dapp.dackie_swapper import dackieswap_token2eth
+from dackie_dapp import dackie_harvester,dackie_swapper
+from beagle_dapp import beagle_harvester,beagle_swapper
 from oil_dapp.oil_harvester import oil_harvest
 
 
@@ -36,28 +35,34 @@ def db_load_accs():
 
 
 # ====================================auto harvest dackie.====================================
-pids = (13, 14)
-
 def dackie_farms_bot(key: str):
-    for pid in pids:
-        farms_harvest(key, pid)
-    # dackieswap_token2eth(key, '0xcf8E7e6b26F407dEE615fc4Db18Bf829E7Aa8C09')
-
-types = ('weth',)
+    dackie_pids = (17,)
+    for pid in dackie_pids:
+        dackie_harvester.farms_harvest(key, pid)
+    dackie_swapper.swap_token2eth(key, '0xcf8E7e6b26F407dEE615fc4Db18Bf829E7Aa8C09')
 
 def dackie_pools_bot(key: str):
-    for type in types:
-        pools_harvest(key, type)
+    dackie_types = ('weth',)
+    for type in dackie_types:
+        dackie_harvester.pools_harvest(key, type)
 # ====================================auto harvest dackie.====================================
 
 
-# ====================================auto harvest oil farms.====================================
-nft_token_ids = (0,2)
+# ====================================auto harvest beagle.====================================
+def beagle_farms_bot(key: str):
+    beagle_pids = (3,)
+    for pid in beagle_pids:
+        beagle_harvester.farms_harvest(key, pid)
+    beagle_swapper.swap_token2eth(key, '0x58388CF6220DF8c113BfB087617055E23c19067f')
+# ====================================auto harvest beagle.====================================
 
+
+# ====================================auto harvest oil farms.====================================
 def oil_harvest_bot(key: str):
-    for token_id in nft_token_ids:
+    for token_id in oil_token_ids:
+        oil_token_ids = (0,2)
         oil_harvest(key, token_id)
-    # dackieswap_token2eth(key, '0x5bC8BDC70D7cD2ff78E0CDA60d326685c047f7B5')
+    dackie_swapper.swap_token2eth(key, '0x5bC8BDC70D7cD2ff78E0CDA60d326685c047f7B5')
 # ====================================auto harvest dackie.====================================
 
 
@@ -66,7 +71,9 @@ def dapp_bot(thread_id: int, name: str, key: str):
     print(f"start to bot: id={thread_id}, name={name}")
     dackie_farms_bot(key)
     dackie_pools_bot(key)
+    beagle_farms_bot(key)
     # oil_harvest_bot(key)
+
 
 def pool_excutes():
     print('start to interact base l2 dapps.')
