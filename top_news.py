@@ -36,23 +36,23 @@ def clean_text(ori:str):
 
 def save_news(filter_eles, date_str:str):
     with pymysql.connect(host='localhost', port=3306, user='ccenlei', password='123', database='web3') as db:
-        for ele in filter_eles:
-            title = clean_text(ele['title_rewritten_v2'])
-            summary = clean_text(ele['summary'])
-            url = ele['url']
-            rating = ele['rating_v2']
-            source = ele['source']
-            category = ele['category']
-            cursor = db.cursor()
-            sql = "INSERT INTO ai_news(title, summary, category, source, rating, url, date_str) VALUES ('%s', '%s',  '%s', '%s',  '%s',  '%s',  '%s')" \
-                    % (title, summary, category, source, rating, url, date_str)
-            try:
+        cursor = db.cursor()
+        try:
+            for ele in filter_eles:
+                title = clean_text(ele['title_rewritten_v2'])
+                summary = clean_text(ele['summary'])
+                url = ele['url']
+                rating = ele['rating_v2']
+                source = ele['source']
+                category = ele['category']
+                sql = "INSERT INTO ai_news(title, summary, category, source, rating, url, date_str) VALUES ('%s', '%s',  '%s', '%s',  '%s',  '%s',  '%s')" \
+                        % (title, summary, category, source, rating, url, date_str)
                 cursor.execute(sql)
-                db.commit()
-            except Exception as ex:
-                # need logger
-                print(ex)
-                db.rollback()
+            db.commit()
+        except Exception as ex:
+            # need logger
+            print(ex)
+            db.rollback()   
 
 
 def crawl_news_summary(id:str):
