@@ -39,10 +39,13 @@ def sign_tx(tx_dict: dict, account: LocalAccount, lefix: str):
     print(f"{lefix} : {account.address} ==> tx_hash : {tx_hash.hex()}, status: {tx_receipt['status']}")
 
 
-def token_approve(key: str, token_addr: str, spender_addr: str):
+def token_approve(key: str, token_addr: str, spender_addr: str, token_abi=''):
     account: LocalAccount = Account.from_key(key)
     addr = account.address
-    token_contract = get_contract_http(token_addr)
+    if '' == token_abi:
+        token_contract = get_contract_http(token_addr)
+    else:
+        token_contract = get_contract(token_addr, token_abi)
     token_balance = token_contract.functions.balanceOf(addr).call()
     spender, amount = spender_addr, token_balance
     tx_dict = token_contract.functions.approve(spender, amount).build_transaction(

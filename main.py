@@ -6,7 +6,7 @@ from concurrent.futures import ThreadPoolExecutor
 import json
 import pymysql
 
-from dapp_bots import dackie_bots,beagle_bots
+from dapp_bots import dackie_bots,beagle_bots,cloud_bots
 
 
 # db: from database; file: from accounts.json
@@ -36,6 +36,7 @@ def dapp_bot(thread_id: int, name: str, key: str):
     print(f"start to bot dapp: id={thread_id}, name={name}")
     dackie_bots.bot_all(key)
     beagle_bots.bot_all(key)
+    cloud_bots.bot_all(key)
 
 
 def pool_excutes():

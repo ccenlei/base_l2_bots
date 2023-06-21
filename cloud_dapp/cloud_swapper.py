@@ -31,7 +31,7 @@ def swap_eth2token(key: str, token_addr: str, amount=0.0121):
             'gasPrice': w3.eth.gas_price,
             'nonce': w3.eth.get_transaction_count(to),
         })
-    sign_tx(tx_dict, account, 'dackie swap eth for token')
+    sign_tx(tx_dict, account, 'cloud swap eth for token')
 
 def swap_token2eth(key: str, token_addr: str):
     account: LocalAccount = Account.from_key(key)
@@ -47,7 +47,7 @@ def swap_token2eth(key: str, token_addr: str):
             'gasPrice': w3.eth.gas_price,
             'nonce': w3.eth.get_transaction_count(addr),
         })
-    sign_tx(tx_dict, account, 'dackie swap token for eth')
+    sign_tx(tx_dict, account, 'cloud swap token for eth')
 
 def swap_token2token(key: str, token_ori_addr: str, token_tar_addr: str):
     account: LocalAccount = Account.from_key(key)
@@ -63,4 +63,4 @@ def swap_token2token(key: str, token_ori_addr: str, token_tar_addr: str):
             'gasPrice': w3.eth.gas_price,
             'nonce': w3.eth.get_transaction_count(addr),
         })
-    sign_tx(tx_dict, account, 'dackie swap token for token')
+    sign_tx(tx_dict, account, 'cloud swap token for token')
