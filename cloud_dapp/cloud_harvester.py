@@ -4,7 +4,7 @@ from eth_account.signers.local import LocalAccount
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
 
-from base_utils import get_contract_http, sign_tx, token_approve
+from base_utils import get_contract, get_contract_http, sign_tx, token_approve
 
 
 header = {'Authorization': 'Bearer RvFMYEylf5IwLpAvy1T51JaKaO-aIHTyJ6jA4dWe5WUBAs88',
@@ -17,7 +17,7 @@ lp_abi = 'cloud_dapp/lp_abi.json'
 
 # ====================================Cloud Farms earn : Stake LP tokens to earn.====================================
 farms_addr = '0x0c6F2bCD7d53829afa422b4535c8892B1566E8c5'
-farms_contract = get_contract_http(farms_addr)
+farms_contract = get_contract(farms_addr, 'cloud_dapp/farms_abi.json')
 
 def farms_stake(key: str, lp_adrr: str, pid: int):
     amount = token_approve(key, lp_adrr, farms_addr, lp_abi)

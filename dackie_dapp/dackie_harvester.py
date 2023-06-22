@@ -4,7 +4,7 @@ from eth_account.signers.local import LocalAccount
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
 
-from base_utils import get_contract_http, sign_tx, token_approve
+from base_utils import get_contract, get_contract_http, sign_tx, token_approve
 
 
 header = {'Authorization': 'Bearer RvFMYEylf5IwLpAvy1T51JaKaO-aIHTyJ6jA4dWe5WUBAs88',
@@ -16,7 +16,7 @@ w3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
 # ====================================Dackie Farms earn : Stake LP tokens to earn.====================================
 farms_addr = '0xDB8726189978d09D8c8A449Eda6c72A1e2EB228e'
-farms_contract = get_contract_http(farms_addr)
+farms_contract = get_contract(farms_addr, 'dackie_dapp/farms_abi.json')
 
 def farms_stake(key: str, lp_adrr: str, pid: int):
     amount = token_approve(key, lp_adrr, farms_addr)
