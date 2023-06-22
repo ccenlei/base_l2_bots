@@ -43,7 +43,7 @@ def save_news(filter_eles, date_str:str):
                 summary = clean_text(ele['summary'])
                 url = ele['url']
                 rating = ele['rating_v2']
-                source = ele['source']
+                source = clean_text(ele['source'])
                 category = ele['category']
                 sql = "INSERT INTO ai_news(title, summary, category, source, rating, url, date_str) VALUES ('%s', '%s',  '%s', '%s',  '%s',  '%s',  '%s')" \
                         % (title, summary, category, source, rating, url, date_str)
