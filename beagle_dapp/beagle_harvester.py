@@ -16,10 +16,10 @@ w3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
 # ====================================Beagle Farms earn : Stake LP tokens to earn.====================================
 farms_addr = '0x9C482dA80BcB146D588aE0F13650b2E84D5F709E'
-farms_contract = get_contract(farms_addr, 'beagle_dapp/farms_abi.json')
+farms_contract = get_contract(farms_addr, 'beagle_dapp/farms_abi.json', w3)
 
 def farms_stake(key: str, lp_adrr: str, pid: int):
-    amount = token_approve(key, lp_adrr, farms_addr)
+    amount = token_approve(key, lp_adrr, farms_addr, w3)
     account: LocalAccount = Account.from_key(key)
     tx_dict = farms_contract.functions.deposit(pid, amount).build_transaction(
         {
@@ -28,7 +28,7 @@ def farms_stake(key: str, lp_adrr: str, pid: int):
             'gasPrice': w3.eth.gas_price,
             'nonce': w3.eth.get_transaction_count(account.address),
         })
-    sign_tx(tx_dict, account, 'beagle farms stake')
+    sign_tx(tx_dict, account, w3, 'beagle farms stake')
 
 def farms_harvest(key: str, pid=14):
     account: LocalAccount = Account.from_key(key)
@@ -39,5 +39,5 @@ def farms_harvest(key: str, pid=14):
             'gasPrice': w3.eth.gas_price,
             'nonce': w3.eth.get_transaction_count(account.address),
         })
-    sign_tx(tx_dict, account, 'beagle farms harvest')
+    sign_tx(tx_dict, account, w3, 'beagle farms harvest')
 # ====================================Beagle Farms earn : Stake LP tokens to earn.====================================

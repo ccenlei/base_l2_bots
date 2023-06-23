@@ -17,10 +17,10 @@ lp_abi = 'cloud_dapp/lp_abi.json'
 
 # ====================================Cloud Farms earn : Stake LP tokens to earn.====================================
 farms_addr = '0x0c6F2bCD7d53829afa422b4535c8892B1566E8c5'
-farms_contract = get_contract(farms_addr, 'cloud_dapp/farms_abi.json')
+farms_contract = get_contract(farms_addr, 'cloud_dapp/farms_abi.json', w3)
 
 def farms_stake(key: str, lp_adrr: str, pid: int):
-    amount = token_approve(key, lp_adrr, farms_addr, lp_abi)
+    amount = token_approve(key, lp_adrr, farms_addr, lp_abi, w3)
     account: LocalAccount = Account.from_key(key)
     tx_dict = farms_contract.functions.deposit(pid, amount).build_transaction(
         {
@@ -29,7 +29,7 @@ def farms_stake(key: str, lp_adrr: str, pid: int):
             'gasPrice': w3.eth.gas_price,
             'nonce': w3.eth.get_transaction_count(account.address),
         })
-    sign_tx(tx_dict, account, 'cloud farms stake')
+    sign_tx(tx_dict, account, w3, 'cloud farms stake')
 
 def farms_harvest(key: str, pid=1):
     account: LocalAccount = Account.from_key(key)
@@ -40,17 +40,17 @@ def farms_harvest(key: str, pid=1):
             'gasPrice': w3.eth.gas_price,
             'nonce': w3.eth.get_transaction_count(account.address),
         })
-    sign_tx(tx_dict, account, 'cloud farms harvest')
+    sign_tx(tx_dict, account, w3, 'cloud farms harvest')
 # ====================================Cloud Farms earn : Stake LP tokens to earn.====================================
 
 
 # ====================================Cloud Pools earn : Just stake some tokens to earn.====================================
 cloud_token = '0x8ae3d0E14Fe5BC0533a5Ca5e764604442d574a00'
 pool_addr = '0x3b28a70a60253deC8056b6f4328E9B630dB09181'
-pool_contract = get_contract_http(pool_addr)
+pool_contract = get_contract_http(pool_addr, w3)
 
 def pool_stake(key: str):
-    amount = token_approve(key, cloud_token, pool_addr)
+    amount = token_approve(key, cloud_token, pool_addr, w3)
     account: LocalAccount = Account.from_key(key)
     tx_dict = pool_contract.functions.deposit(amount).build_transaction(
         {
@@ -59,7 +59,7 @@ def pool_stake(key: str):
             'gasPrice': w3.eth.gas_price,
             'nonce': w3.eth.get_transaction_count(account.address),
         })
-    sign_tx(tx_dict, account, 'cloud pools stake')
+    sign_tx(tx_dict, account, w3, 'cloud pools stake')
 
 def pool_harvest(key: str):
     account: LocalAccount = Account.from_key(key)
@@ -70,5 +70,5 @@ def pool_harvest(key: str):
             'gasPrice': w3.eth.gas_price,
             'nonce': w3.eth.get_transaction_count(account.address),
         })
-    sign_tx(tx_dict, account, 'cloud pools harvest')
+    sign_tx(tx_dict, account, w3, 'cloud pools harvest')
 # ====================================Cloud Pools earn : Just stake some tokens to earn.====================================

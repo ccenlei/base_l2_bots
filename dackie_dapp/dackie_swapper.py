@@ -16,7 +16,7 @@ w3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
 
 dackieswap_addr = '0x29843613c7211D014F5Dd5718cF32BCD314914CB'
-dackieswap_contract = get_contract(dackieswap_addr, 'dackie_dapp/swap_abi.json')
+dackieswap_contract = get_contract(dackieswap_addr, 'dackie_dapp/swap_abi.json', w3)
 weth_addr = '0x4200000000000000000000000000000000000006'
 
 def swap_eth2token(key: str, token_addr: str, amount=0.0121):
@@ -31,12 +31,12 @@ def swap_eth2token(key: str, token_addr: str, amount=0.0121):
             'gasPrice': w3.eth.gas_price,
             'nonce': w3.eth.get_transaction_count(to),
         })
-    sign_tx(tx_dict, account, 'dackie swap eth for token')
+    sign_tx(tx_dict, account, w3, 'dackie swap eth for token')
 
 def swap_token2eth(key: str, token_addr: str):
     account: LocalAccount = Account.from_key(key)
     addr = account.address
-    token_balance = token_approve(key, token_addr, dackieswap_addr)
+    token_balance = token_approve(key, token_addr, dackieswap_addr, w3)
     path = [token_addr, weth_addr]
     deadline = int(datetime.now().timestamp()) + 1200
     tx_dict = dackieswap_contract.functions.swapExactTokensForETH(
@@ -47,12 +47,12 @@ def swap_token2eth(key: str, token_addr: str):
             'gasPrice': w3.eth.gas_price,
             'nonce': w3.eth.get_transaction_count(addr),
         })
-    sign_tx(tx_dict, account, 'dackie swap token for eth')
+    sign_tx(tx_dict, account, w3, 'dackie swap token for eth')
 
 def swap_token2token(key: str, token_ori_addr: str, token_tar_addr: str):
     account: LocalAccount = Account.from_key(key)
     addr = account.address
-    token_balance = token_approve(key, token_ori_addr, dackieswap_addr)
+    token_balance = token_approve(key, token_ori_addr, dackieswap_addr, w3)
     path = [token_ori_addr, token_tar_addr]
     deadline = int(datetime.now().timestamp()) + 1200
     tx_dict = dackieswap_contract.functions.swapExactTokensForTokens(
@@ -63,4 +63,4 @@ def swap_token2token(key: str, token_ori_addr: str, token_tar_addr: str):
             'gasPrice': w3.eth.gas_price,
             'nonce': w3.eth.get_transaction_count(addr),
         })
-    sign_tx(tx_dict, account, 'dackie swap token for token')
+    sign_tx(tx_dict, account, w3, 'dackie swap token for token')
